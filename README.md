@@ -1,1 +1,1 @@
-Nordic CRM github repo
+Nordic CRM
