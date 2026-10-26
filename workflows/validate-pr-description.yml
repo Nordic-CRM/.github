@@ -19,7 +19,7 @@ jobs:
     steps:
       - name: Validate required sections
         env:
-          PR_BODY: ${{ inputs.pr_body }}
+          PR_BODY: ${{ github.event.pull_request.body || '' }}
         run: |
           node <<'NODE'
           const body = process.env.PR_BODY || "";
