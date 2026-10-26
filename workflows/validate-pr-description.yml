@@ -2,11 +2,6 @@ name: PR description policy
 
 on:
   pull_request:
-    inputs:
-      pr_body:
-        description: Pull request description
-        required: true
-        type: string
 
 permissions:
   contents: read
