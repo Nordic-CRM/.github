@@ -9,8 +9,8 @@ permissions:
 jobs:
   required-sections:
     name: Required PR sections
+    if: true
     runs-on: ubuntu-latest
-
     steps:
       - name: Validate required sections
         env:
