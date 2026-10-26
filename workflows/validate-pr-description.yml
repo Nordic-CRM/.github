@@ -1,7 +1,7 @@
 name: PR description policy
 
 on:
-  workflow_call:
+  pull_request:
     inputs:
       pr_body:
         description: Pull request description
