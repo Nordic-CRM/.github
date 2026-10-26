@@ -1,0 +1,71 @@
+name: Validate PR description
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  required-sections:
+    name: Required PR sections
+    if: true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate required sections
+        env:
+          PR_BODY: ${{ github.event.pull_request.body || '' }}
+        run: |
+          node <<'NODE'
+          const body = process.env.PR_BODY || "";
+          const lines = body.split(/\r?\n/);
+
+          const requiredSections = [
+            "Task description",
+            "Business logic",
+            "Acceptance criteria"
+          ];
+
+          function escapeRegex(value) {
+            return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+          }
+
+          function getSectionContent(title) {
+            const heading = new RegExp(
+              `^##\\s+${escapeRegex(title)}\\s*$`,
+              "i"
+            );
+
+            const start = lines.findIndex(line => heading.test(line));
+
+            if (start === -1) {
+              return null;
+            }
+
+            const nextHeading = lines.findIndex(
+              (line, index) => index > start && /^##\s+/.test(line)
+            );
+
+            const end = nextHeading === -1 ? lines.length : nextHeading;
+
+            return lines
+              .slice(start + 1, end)
+              .join("\n")
+              .replace(/<!--[\s\S]*?-->/g, "")
+              .trim();
+          }
+
+          const missing = requiredSections.filter(section => {
+            const content = getSectionContent(section);
+            return !content;
+          });
+
+          if (missing.length > 0) {
+            console.error(
+              `Complete the following PR sections: ${missing.join(", ")}`
+            );
+            process.exit(1);
+          }
+
+          console.log("All required PR sections are completed.");
+          NODE
