@@ -1,0 +1,44 @@
+name: Enforce branch flow policy
+
+# This workflow is intended to be selected as a required workflow in an
+# organization ruleset. Ruleset workflow event filters are ignored by GitHub,
+# so the policy is enforced in the job itself.
+on:
+  pull_request:
+  merge_group:
+
+# The check only reads event metadata and does not need repository access.
+permissions: {}
+
+jobs:
+  branch-flow-policy:
+    name: Branch flow policy
+    # Required for an organization ruleset workflow that runs in repositories
+    # other than the repository containing this workflow file.
+    if: true
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+
+    steps:
+      - name: Validate pull request source and target branches
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # A merge-group run has no pull-request head/base refs. The pull
+          # request was already checked before it entered the merge queue.
+          if [[ "$GITHUB_EVENT_NAME" == "merge_group" ]]; then
+            echo "Merge queue check passed; branch flow was validated on the pull request."
+            exit 0
+          fi
+
+          echo "Validating pull request: $GITHUB_HEAD_REF -> $GITHUB_BASE_REF"
+
+          # Block pull requests into main unless the source is dev or */dev.
+          if [[ "$GITHUB_BASE_REF" == "main" && \
+                ! ( "$GITHUB_HEAD_REF" == "dev" || "$GITHUB_HEAD_REF" == */dev ) ]]; then
+            echo "::error title=Invalid branch flow::Only 'dev' or a branch ending in '/dev' may merge into 'main'. Source branch: '$GITHUB_HEAD_REF'."
+            exit 1
+          fi
+
+          echo "Allowed: no blocked branch flow detected."
