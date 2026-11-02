@@ -1,4 +1,4 @@
-name: Enforce branch flow policy
+name: Verify and validate pull request destination
 
 # This workflow is intended to be selected as a required workflow in an
 # organization ruleset. Ruleset workflow event filters are ignored by GitHub,
